@@ -6,11 +6,11 @@
 #define E 1000
 #define L 10
 
-const int N = 8;
+const int N = 100;
 const double tx = 25;
 const double bx = 10;
 const double h = L/float(N-1);
-const double M = 20;
+const double M = 200;
 
 double** alloc(double **arr, int m, int n);
 void print2D(double **arr,int m, int n);
@@ -49,35 +49,40 @@ int main(int argc, char const *argv[])
 		fvec[i][0] = 0;
 	}
 	fvec[0][0] = 0;
-	fvec[1][0] -= Kele[1][0]*0;
+	fvec[1][0] -= Kele[1][0]*fvec[0][0];
 	fvec[N-1][0] += tx;
-	print2D(fvec,N,1);
-	print2D(fele,2,1);
+	//print2D(fvec,N,1);
+	//print2D(fele,2,1);
+	
 	double **u;
 	u = alloc(u,N,1);
 	gausselimi(u, Kmat, fvec, N);
-	print2D(u,N,1);
-	/* plotting */
+	//print2D(u,N,1);
+
+	// plot
 	double **output, elex; int flag = 1, elenum = 1;
 	output = alloc(output,M,3);
-	
+	//printf("h=%lf\n",h);
+	// trouble here:
 	for (i=0;i<M;i++){
 		output[i][0] = L/(M-1)*i;
-		if (output[i][0]>elenum*h){
+		if (output[i][0]-elenum*h>1e-6){
 			elenum++;
 		}
 		elex = output[i][0] - (elenum-1)*h;
+		//printf("elenum=%d,elex=%lf\n",elenum, elex);
 		output[i][1] = shapecal(elex,1)*u[elenum-1][0];
 		output[i][1] += shapecal(elex,2)*u[elenum][0];
 		output[i][2] = -E/h*u[elenum-1][0]+E/h*u[elenum][0];
 	}
+
 	printf("x\t\t\tu\t\t\tsigma\n");
 	print2D(output,M,3);
 	FILE *fp1,*fp2;
-	fp1 = fopen("plot1.dat","w");
-	fp2 = fopen("plot2.dat","w");
-	fprintf(fp1, "x\t\tdisplacement\n");
-	fprintf(fp2, "x\t\tstress\n");
+	fp1 = fopen("plot1","w");
+	fp2 = fopen("plot2","w");
+	//fprintf(fp1, "x\t\tdisplacement\n");
+	//fprintf(fp2, "x\t\tstress\n");
 	for (i=0;i<M;i++){
 		fprintf(fp1, "%f\t%f\n",output[i][0],output[i][1] );
 		fprintf(fp2, "%f\t%f\n",output[i][0],output[i][2] );
@@ -85,6 +90,7 @@ int main(int argc, char const *argv[])
 	fclose(fp1);
 	fclose(fp2);
 	return 0;
+	
 }
 
 double shapecal(double x, int flag){
